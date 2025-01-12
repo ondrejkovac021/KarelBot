@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karel bot</title>
+    <style>
+        body {
+            font-family: 'Verdana', sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(10, 40px);
+            grid-template-rows: repeat(10, 40px);
+            gap: 2px;
+            margin: 20px auto;
+            width: fit-content;
+            background: #999;
+            border: 5px solid #555;
+            padding: 5px;
+            border-radius: 10px;
+        }
+        .cell {
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            border: 1px solid #ccc;
+        }
+        .karel {
+            background: #7ec8e3;
+            border: 2px solid #0074a2;
+        }
+        textarea {
+            width: 90%;
+            max-width: 400px;
+            height: 100px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 2px solid #555;
+            border-radius: 5px;
+            font-size: 16px;
+            resize: none;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            color: white;
+            background-color: #0074a2;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005f81;
+        }
+    </style>
+</head>
+<body>
+    <h1>Karel bot</h1>
+    <div id="game-board"></div>
+    <textarea id="commands" placeholder="Zadejte příkazy..."></textarea><br>
+    <button onclick="executeCommands()">Spustit</button>
+    <button onclick="resetGame()">Reset</button>
+
+    <script>
+        const boardSize = 10; 
+        const board = document.getElementById('game-board');
+        let karel = { x: 0, y: 0, direction: 'right' }; 
+
+        function initBoard() {
+            board.innerHTML = '';
+            for (let i = 0; i < boardSize * boardSize; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                board.appendChild(cell);
+            }
+            updateKarel();
+        }
+
+        function updateKarel() {
+            document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('karel'));
+            const index = karel.y * boardSize + karel.x;
+            board.children[index].classList.add('karel');
+        }
+
+        function executeCommands() {
+            const commands = document.getElementById('commands').value.trim().split('\n');
+            commands.forEach(command => executeCommand(command.trim().toUpperCase()));
+        }
+
+        function executeCommand(command) {
+            const parts = command.split(' ');
+            const action = parts[0];
+            const param = parts[1] ? parseInt(parts[1]) : 1;
+
+            switch (action) {
+                case 'KROK':
+                    moveKarel(param);
+                    break;
+                case 'VLEVOBOK':
+                    turnLeft(param);
+                    break;
+                case 'POLOZ':
+                    placeItem(parts[1]);
+                    break;
+                case 'RESET':
+                    resetGame();
+                    break;
+                default:
+                    console.log('Neznámý příkaz:', action);
+            }
+        }
+
+        function moveKarel(steps) {
+            for (let i = 0; i < steps; i++) {
+                switch (karel.direction) {
+                    case 'right':
+                        karel.x = Math.min(boardSize - 1, karel.x + 1);
+                        break;
+                    case 'down':
+                        karel.y = Math.min(boardSize - 1, karel.y + 1);
+                        break;
+                    case 'left':
+                        karel.x = Math.max(0, karel.x - 1);
+                        break;
+                    case 'up':
+                        karel.y = Math.max(0, karel.y - 1);
+                        break;
+                }
+                updateKarel();
+            }
+        }
+
+        function turnLeft(times) {
+            const directions = ['right', 'down', 'left', 'up'];
+            for (let i = 0; i < times; i++) {
+                const currentIndex = directions.indexOf(karel.direction);
+                karel.direction = directions[(currentIndex + 3) % 4];
+            }
+        }
+
+        function placeItem(item) {
+            const index = karel.y * boardSize + karel.x;
+            board.children[index].textContent = item;
+        }
+
+        function resetGame() {
+            karel = { x: 0, y: 0, direction: 'right' };
+            initBoard();
+        }
+
+        initBoard();
+    </script>
+</body>
+</html>
